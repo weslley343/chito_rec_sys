@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 import os
+import uvicorn
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -82,6 +83,9 @@ def fetch_answers(client, avaliationid, scale_id):
         result = conn.execute(text(query), params)
         return pd.DataFrame(result.fetchall(), columns=result.keys())
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Recommendation API!"}
 
 @app.get("/recommend")
 async def recommend_questions_route(avaliation: int, client: str, scale: int):
@@ -130,3 +134,9 @@ async def recommend_questions_route(avaliation: int, client: str, scale: int):
         return {"filtered_questions": filtered_questions[['questionid', 'item_order', 'content', 'domain', 'color']].to_dict(orient='records')}
     else:
         return {"message": "Nenhum dado retornado para as avaliações similares."}
+
+
+if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
