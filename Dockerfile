@@ -1,31 +1,13 @@
-# Usa imagem com Python 3.12 para evitar problemas com pacotes como pandas
-FROM python:3.12-slim
+FROM python:3.11-slim-bookworm
 
-# Define o diretório de trabalho dentro do container
 WORKDIR /app
+COPY . /app
 
-# Copia os arquivos de dependência para o container
-COPY requirements.txt .
+RUN apt-get update && apt-get upgrade -y && apt-get clean
 
-# Instala dependências do sistema necessárias para compilar numpy, pandas etc.
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gcc \
-    g++ \
-    libffi-dev \
-    libssl-dev \
-    libpq-dev \
-    && pip install --upgrade pip \
-    && pip install -r requirements.txt \
-    && apt-get remove -y build-essential gcc g++ \
-    && apt-get autoremove -y \
-    && apt-get clean
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
 
-# Copia o restante da aplicação para o container
-COPY . .
-
-# Expõe a porta usada pela aplicação
 EXPOSE 8000
 
-# Comando para iniciar sua aplicação
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

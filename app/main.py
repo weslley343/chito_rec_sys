@@ -18,6 +18,13 @@ app = FastAPI()
 class QueryParams(BaseModel):
     client: int
     avaliationid: int
+
+def get_scales():
+    query = "SELECT id, name FROM scales;"
+    with engine.connect() as conn:
+        result = conn.execute(text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+        return df.to_dict(orient='records')
     
 def query_relation(client, avaliationid, scale_id):
     query = """
@@ -87,6 +94,11 @@ def fetch_answers(client, avaliationid, scale_id):
 async def root():
     return {"message": "Welcome to the Recommendation API!"}
 
+@app.get("/list_scales")
+async def list_scales():
+    return get_scales()
+   
+
 @app.get("/recommend")
 async def recommend_questions_route(avaliation: int, client: str, scale: int):
     avaliationid = avaliation
@@ -136,7 +148,7 @@ async def recommend_questions_route(avaliation: int, client: str, scale: int):
         return {"message": "Nenhum dado retornado para as avaliações similares."}
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+#     port = int(os.environ.get("PORT", 8000))
+#     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
